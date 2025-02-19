@@ -1,4 +1,4 @@
-# VERSION CASO BASE 1
+# VERSION CASO BASE 2
 
 import simpy
 import random
@@ -7,7 +7,7 @@ import random
 def nodo(ambiente, arreglo, nodoid):
     print(f"Nodo {nodoid}: {arreglo}")
     # CASO BASE
-    if len(arreglo) == 1:
+    if len(arreglo) == 2:
         if arreglo[0] <= arreglo[1]:
             return arreglo
         else:

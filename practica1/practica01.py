@@ -4,15 +4,36 @@ import simpy
 import random
 
 
+def mezclar(mitad_ordenada_izq, mitad_ordenada_der):
+    resultado = []
+    i, j = 0, 0
+
+    while i < len(mitad_ordenada_izq) and j < len(mitad_ordenada_der):
+        if mitad_ordenada_izq[i] < mitad_ordenada_der[j]:
+            resultado.append(mitad_ordenada_izq[i])
+            i += 1
+        else:
+            resultado.append(mitad_ordenada_der[j])
+            j += 1
+
+    while i < len(mitad_ordenada_izq):
+        resultado.append(mitad_ordenada_izq[i])
+        i += 1
+
+    while j < len(mitad_ordenada_der):
+        resultado.append(mitad_ordenada_der[j])
+        j += 1
+
+    return resultado
+
+
 def nodo(ambiente, arreglo, nodoid):
-    print(f"Nodo {nodoid}: {arreglo}")
-    # CASO BASE
+    print(f"Nodo {nodoid} GOT IN: {arreglo}")
     if len(arreglo) == 2:
         if arreglo[0] <= arreglo[1]:
             return arreglo
         else:
             return arreglo[::-1]
-    # EN OTRO CASO, MEZCLAR
     else:
         mitad = len(arreglo) // 2
         mitad_izq = arreglo[:mitad]
@@ -22,10 +43,9 @@ def nodo(ambiente, arreglo, nodoid):
         hijo_izq = ambiente.process(nodo(ambiente, mitad_izq, nodoid * 2 + 1))
         hijo_der = ambiente.process(nodo(ambiente, mitad_der, nodoid * 2 + 2))
         mitad_ordenada_izq, mitad_ordenada_der = (yield hijo_izq & hijo_der).values()
-        print(f"valores recibidos {nodoid}: {mitad_ordenada_izq}, {mitad_ordenada_der}")
-
-        # COMPARAR CUAL MITAD VA PRIMERO
-        resultado = mitad_ordenada_izq + mitad_ordenada_der
+        yield ambiente.timeout(1)
+        print(f"Nodo {nodoid} GOT BACK: {mitad_ordenada_izq}, {mitad_ordenada_der}")
+        resultado = mezclar(mitad_ordenada_izq, mitad_ordenada_der)
         print(resultado)
         return resultado
 
@@ -36,4 +56,4 @@ print(arreglo_sin_ordernar)
 ambiente = simpy.Environment()
 
 ambiente.process(nodo(ambiente, arreglo_sin_ordernar, 0))
-ambiente.run()
+ambiente.run(until=1)

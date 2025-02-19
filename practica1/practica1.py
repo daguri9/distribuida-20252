@@ -8,10 +8,7 @@ def nodo(ambiente, arreglo, nodoid):
     print(f"Nodo {nodoid}: {arreglo}")
     # CASO BASE
     if len(arreglo) == 1:
-        if arreglo[0] <= arreglo[1]:
-            return arreglo
-        else:
-            return arreglo[::-1]
+        return arreglo
     # EN OTRO CASO, MEZCLAR
     else:
         mitad = len(arreglo) // 2
@@ -24,8 +21,6 @@ def nodo(ambiente, arreglo, nodoid):
         mitad_ordenada_izq, mitad_ordenada_der = (yield hijo_izq & hijo_der).values()
         print(f"valores recibidos {nodoid}: {mitad_ordenada_izq}, {mitad_ordenada_der}")
 
-        # COMPARAR CUAL MITAD VA PRIMERO
-        resultado = mitad_ordenada_izq + mitad_ordenada_der
         print(resultado)
         return resultado
 

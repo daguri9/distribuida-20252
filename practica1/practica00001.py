@@ -10,9 +10,9 @@ def ordenar(ambiente, lista, id):
     mitad = len(lista) // 2
     yield ambiente.timeout(1)
     print("GO: hijo izquierda")
-    hi = ambiente.process(ordenar(ambiente, lista[mitad:], id*2 + 1))
+    hi = ambiente.process(ordenar(ambiente, lista[mitad:], id*2))
     print("GO: hijo derecho")
-    hd = ambiente.process(ordenar(ambiente, lista[:mitad], id*2 + 2))
+    hd = ambiente.process(ordenar(ambiente, lista[:mitad], id*2 + 1))
     lista_izq, lista_der = (yield hi & hd).values()
     
     lista_ordenada = []
@@ -37,10 +37,11 @@ def ordenar(ambiente, lista, id):
 
 def main():
     lista = [random.randint(0, 1000) for _ in range(0, 16)]
+    print(f"lista desordenada: {lista}")
     ambiente = simpy.Environment()
     lista_ordenada = ambiente.process(ordenar(ambiente, lista, 1))
     ambiente.run()
-    print(lista_ordenada.value)
+    print(f"lista ordenada: {lista_ordenada.value}")
 
 
 if __name__ == "__main__":

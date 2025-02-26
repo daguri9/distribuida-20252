@@ -3,28 +3,17 @@ import random
 
 
 class Nodo:
-    def __init__(
-        self,
-        env,
-        nodo_id: int,
-        padre: Nodo,
-        vecino_izq: Nodo,
-        vecino_der: Nodo
-    ):
+    def __init__(self, env, nodo_id: int, padre: Nodo):
         self.env = env
         self.nodo_id = nodo_id
         self.padre = padre
-        self.vecino_izq = vecino_izq
-        self.vecino_der = vecino_der
-        self.inbox = simpy.Store(env)
+        self.vecino_izq = None
+        self.vecino_der = None
+        self.lista = []
         env.process(self.ejecutar())
 
-    def mezclar(
-        self,
-        mitad_ordenada_izq: list,
-        mitad_ordenada_der: list
-    ) -> list:
-        '''
+    def mezclar(self, mitad_ordenada_izq: list, mitad_ordenada_der: list) -> list:
+        """
         Recibe dos listas previamente ordenadas y se mezclan en una sola.
         Parameters
         ----------
@@ -37,7 +26,7 @@ class Nodo:
         -------
         list:
             Lista ordenada al mezclar las anteriores.
-        '''
+        """
         lista_mezclada = []
         i, j = 0, 0
         while i < len(mitad_ordenada_izq) and j < len(mitad_ordenada_der):
@@ -56,7 +45,7 @@ class Nodo:
         return lista_mezclada
 
     def ordenar(self, lista: list) -> list:
-        '''
+        """
         Intenta ordenar una lista trivialmente: Si tiene dos elementos,
         se mueve el mayor al inicio y se regresa. Si tiene un solo
         elemento, se regresa tal cual.
@@ -71,7 +60,7 @@ class Nodo:
         -------
         list:
             Lista ordenada.
-        '''
+        """
         if len(lista) == 1:
             return lista
         elif len(lista) == 2:
@@ -81,20 +70,15 @@ class Nodo:
                 return lista[::-1]
         else:
             mitad = len(lista) // 2
-            mitad_izq = lista[:mitad]
-            mitad_der = lista[mitad:]
-
-    def send(self, message):
-        mitad_ordenada_izq.inbox.put((self.nodo_id, message))
-        mitad_ordenada_der.inbox.put((self.nodo_id, message))
+            self.mitad_izq = lista[:mitad]
+            self.mitad_der = lista[mitad:]
+            # CREE LOS HIJOS Y LES PASE SU MITAD
 
     def ejecutar(self):
         while True:
-            sender, message = yield self.inbox.get()
-            if not self.seen_message:
-                self.seen_message = True
-                print(f"Time {self.env.now}: Process {self.nodo_id} received message from {sender}")
-                self.send(message)
+            if self.padre is None:
+                lista_sin_ordernar = [random.randint(0, 1000) for p in range(0, 16)]
+            yield self.env.timeout(1)
 
 
 # Simulation setup
@@ -114,14 +98,6 @@ def inicializar_simulacion(num_nodos, raiz):
     # Start broadcast from source
     env.process(initial_broadcast(env, processes[source]))
     env.run()
-
-
-# Initial broadcast trigger
-def initial_broadcast(env, source_process):
-    yield env.timeout(0)
-    source_process.seen_message = True
-    print(f"Time {env.now}: Process {source_process.nodo_id} initiates broadcast")
-    source_process.send("Message")
 
 
 if __name__ == "__main__":

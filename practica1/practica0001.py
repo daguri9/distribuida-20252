@@ -7,12 +7,20 @@ class Nodo:
         self.env = env
         self.nodo_id = nodo_id
         self.padre = padre
-        self.vecino_izq = None
-        self.vecino_der = None
+        self.hijo_izq = None
+        self.mitad_recibida_izq = None
+        self.hijo_der = None
+        self.mitad_recibida_der = None
         self.lista = []
         env.process(self.ejecutar())
 
-    def mezclar(self, mitad_ordenada_izq: list, mitad_ordenada_der: list) -> list:
+    def recibir_mitad(self, mitad_recibida: list, id_remitente: int):
+        if id_remitente == self.hijo_izq.nodo_id:
+            mitad_recibida_izq = mitad_recibida
+        elif id_remitente == self.hijo_der.nodo_id:
+            mitad_recibida_der = mitad_recibida
+
+    def mezclar(self, mitad_ordenada_izq: list, mitad_ordenada_der: list):
         """
         Recibe dos listas previamente ordenadas y se mezclan en una sola.
         Parameters
@@ -62,44 +70,49 @@ class Nodo:
             Lista ordenada.
         """
         if len(lista) == 1:
-            return lista
+            print(
+                f"BACK: Enviando {lista} a el padre de {self.nodo_id} ({self.padre.nodo_id})"
+            )
+            self.padre.mezclar(lista)
         elif len(lista) == 2:
             if lista[0] <= lista[1]:
-                return lista
+                print(
+                    f"BACK: Enviando {lista} a el padre de {self.nodo_id} ({self.padre.nodo_id})"
+                )
+                self.padre.mezclar(lista)
             else:
-                return lista[::-1]
+                print(
+                    f"BACK: Enviando {lista[::-1]} a el padre de {self.nodo_id} ({self.padre.nodo_id})"
+                )
+                self.padre.mezclar(lista[::-1])
         else:
             mitad = len(lista) // 2
             self.mitad_izq = lista[:mitad]
             self.mitad_der = lista[mitad:]
-            # CREE LOS HIJOS Y LES PASE SU MITAD
+
+            if self.hijo_izq is None:
+                self.hijo_izq = Nodo(self.env, self.nodo_id * 2 + 1, self)
+
+            if self.hijo_der is None:
+                self.hijo_der = Nodo(self.env, self.nodo_id * 2 + 2, self)
+
+            self.hijo_izq.ordenar(self.mitad_izq)
+            print(f"GO: Enviando {self.mitad_izq} a {self.hijo_izq.nodo_id}")
+            self.hijo_der.ordenar(self.mitad_der)
+            print(f"GO: Enviando {self.mitad_der} a {self.hijo_der.nodo_id}")
+
+        yield self.env.timeout(1)
 
     def ejecutar(self):
         while True:
-            if self.padre is None:
-                lista_sin_ordernar = [random.randint(0, 1000) for p in range(0, 16)]
-            yield self.env.timeout(1)
-
-
-# Simulation setup
-def inicializar_simulacion(num_nodos, raiz):
-    env = simpy.Environment()
-    nodos = {}
-
-    # Create processes
-    for i in range(num_processes):
-        processes[i] = Process(env, i, [])
-
-    # Establish neighbors
-    for a, b in edges:
-        processes[a].neighbors.append(processes[b])
-        processes[b].neighbors.append(processes[a])
-
-    # Start broadcast from source
-    env.process(initial_broadcast(env, processes[source]))
-    env.run()
+            if self.padre is None and self.lista == []:
+                self.lista = [random.randint(0, 1000) for p in range(0, 16)]
+                print(f"{self.nodo_id} ha generado {self.lista}")
+                self.ordenar(self.lista)
 
 
 if __name__ == "__main__":
-    arreglo_sin_ordernar = [random.randint(0, 1000) for p in range(0, 16)]
-    inicializar_simulacion(len(arreglo_sin_ordernar), 0)
+    env = simpy.Environment()
+    raiz = Nodo(env, 0, None)
+    env.process(raiz.ejecutar())
+    env.run()

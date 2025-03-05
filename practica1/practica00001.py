@@ -17,6 +17,8 @@ def ordenar(ambiente: simpy.core.Environment, lista: list, id: int):
     Si la lista tiene uno o dos elementos, se ordena trivialmente
     y se manda de regreso al proceso padre por medio de un mensaje
     BACK.
+
+    Parameters
     ----------
     ambiente:
         Un ambiente de ejecución de procesos simulados de SimPy.
@@ -34,24 +36,32 @@ def ordenar(ambiente: simpy.core.Environment, lista: list, id: int):
     """
     print(f"[Ronda {ambiente.now}] Nuevo nodo, ID: {id}")
 
+    # Se verifica si la lista recibida es trivial de ordenar.
+    # De ser el caso, se ordena, se regresa y el proceso concluye.
     if len(lista) == 2:
         return lista if lista[0] < lista[1] else lista[::-1]
     elif len(lista) == 1:
         return lista
 
+    # Si la lista no es trivial, se parte en dos y se invocan
+    # a dos procesos para resolverlas.
     mitad = len(lista) // 2
     yield ambiente.timeout(1)
 
-    id_hijo_izquierdo = id * 2
-    print(f"[Ronda {ambiente.now}] GO: {id}->{id_hijo_izquierdo} (hijo izquierdo)")
-    hi = ambiente.process(ordenar(ambiente, lista[mitad:], id_hijo_izquierdo))
+    id_hijo_izq = id * 2
+    print(f"[Ronda {ambiente.now}] GO: {id}->{id_hijo_izq} (hijo izquierdo)")
+    hi = ambiente.process(ordenar(ambiente, lista[mitad:], id_hijo_izq))
 
-    id_hijo_derecho = id * 2 + 1
-    print(f"[Ronda {ambiente.now}] GO: {id}->{id_hijo_derecho} (hijo derecho)")
-    hd = ambiente.process(ordenar(ambiente, lista[:mitad], id_hijo_derecho))
+    id_hijo_der = id * 2 + 1
+    print(f"[Ronda {ambiente.now}] GO: {id}->{id_hijo_der} (hijo derecho)")
+    hd = ambiente.process(ordenar(ambiente, lista[:mitad], id_hijo_der))
 
+    # Se espera por los resultados de los procesos hijos.
     lista_izq, lista_der = (yield hi & hd).values()
 
+    # Una vez recibidas las listas ordenadas de los procesos hijos,
+    # podemos fusionarlas en una sola iterando sobre de ellas a la vez
+    # y poniendo los elementos mayores o menores segun corresponda.
     lista_ordenada = []
     i, j = 0, 0
 
@@ -67,12 +77,18 @@ def ordenar(ambiente: simpy.core.Environment, lista: list, id: int):
     lista_ordenada.extend(lista_der[j:])
 
     yield ambiente.timeout(1)
-    print(f"[Ronda {ambiente.now}] BACK: Desde {id}")
 
+    # Finalmente, podemos devolver la lista ordenada final.
+    print(f"[Ronda {ambiente.now}] BACK: Desde {id}")
     return lista_ordenada
 
 
 def main():
+    """
+    Un método simple para inicializar la simulación.
+    Se genera una lista aleatoria y se invoca un proceso raíz para
+    completar la tarea de ordenarlo.
+    """
     lista = [random.randint(0, 1000) for _ in range(0, 16)]
     print(f"Lista desordenada: {lista}")
     ambiente = simpy.Environment()

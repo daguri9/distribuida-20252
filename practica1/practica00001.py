@@ -27,7 +27,7 @@ def ordenar(ambiente: simpy.core.Environment, lista: list, id: int):
         Lista para ordenar.
 
     id: int
-        Lista ordenada entregada por el nodo hijo derecho.
+        Identificador único del proceso actual.
 
     Returns
     -------

@@ -1,17 +1,3 @@
----
-title: Computación Distribuida - Práctica 1 [^curso]
-author: 
-- Alejandro Axel Rodríguez Sánchez [^alumno1]
-- José David Aguilar Uribe [^alumno2]
-date: 5 de marzo del 2025
-lang: es
-fontfamily: Rosario
-bibliography: ./practica1.bib
-fontfamilyoptions: familydefault
-abstract: En este reporte detallamos la implementacion de una sencilla simulación de un sistema distribuido síncrono con el propósito de resolver el algoritmo de ordenamiento *MergeSort*, usando Python3K y la biblioteca SimPy.
-keywords: [Computación distribuida, SimPy, Python, MergeSort]
----
-
 # Computación Distribuida - Práctica 2
 
 **Equipo:**
